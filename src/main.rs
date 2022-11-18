@@ -42,7 +42,7 @@ fn main() {
     let mut j = get_joycon();
     let mut ui = uinput::default()
         .unwrap()
-        .name("test")
+        .name("joycon2click")
         .unwrap()
         .event(uinput::event::Keyboard::All)
         .unwrap()
