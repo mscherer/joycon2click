@@ -1,20 +1,21 @@
+use evdev;
+use uinput;
+
 // Nintendo product ID
 const VENDOR_ID: u16 = 1406;
 const PRODUCT_ID: u16 = 8198;
 
-fn get_joycon() -> evdev::Device {
-    // vendor 1406
-    // productid 8198
+fn get_joycon() -> Option<evdev::Device> {
     // TODO use https://github.com/emberian/evdev/blob/master/examples/_pick_device.rs
-    let mut c = 0;
     let devices = evdev::enumerate().collect::<Vec<_>>();
     // readdir returns them in reverse order from their eventN names for some reason
     for (i, d) in devices.iter().enumerate() {
         if d.input_id().product() == PRODUCT_ID && d.input_id().vendor() == VENDOR_ID {
-            c = i;
+            return Some(devices.into_iter().nth(i).unwrap());
         }
     }
-    devices.into_iter().nth(c).unwrap()
+    None
+    //   devices.into_iter().nth(c).unwrap()
 }
 
 /*
@@ -39,7 +40,6 @@ fn press_right(ui: &mut uinput::Device) {
 }
 
 fn main() {
-    let mut j = get_joycon();
     let mut ui = uinput::default()
         .unwrap()
         .name("joycon2click")
@@ -49,15 +49,19 @@ fn main() {
         .create()
         .unwrap();
 
-    println!("Device: {:?}", j.name());
-    // make_vibrate(&mut j);
-    loop {
-        for ev in j.fetch_events().unwrap() {
-            let k = ev.kind();
-            match k {
-                evdev::InputEventKind::Key(_) => press_right(&mut ui),
-                //_ => (),
-                _ => println!("{:?}", ev.kind()),
+    match get_joycon() {
+        None => println!("No joycon detected"),
+
+        Some(mut j) => {
+            println!("Device: {:?}", j.name());
+            // make_vibrate(&mut j);
+            loop {
+                for ev in j.fetch_events().unwrap() {
+                    match ev.kind() {
+                        evdev::InputEventKind::Key(_) => press_right(&mut ui),
+                        k => println!("{:?}", k),
+                    }
+                }
             }
         }
     }
