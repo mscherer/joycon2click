@@ -7,15 +7,13 @@ const PRODUCT_ID: u16 = 8198;
 
 fn get_joycon() -> Option<evdev::Device> {
     // TODO use https://github.com/emberian/evdev/blob/master/examples/_pick_device.rs
-    let devices = evdev::enumerate().collect::<Vec<_>>();
-    // readdir returns them in reverse order from their eventN names for some reason
-    for (i, d) in devices.iter().enumerate() {
+//    let devices = evdev::enumerate().collect::<Vec<_>>();
+    for  d in evdev::enumerate() {
         if d.input_id().product() == PRODUCT_ID && d.input_id().vendor() == VENDOR_ID {
-            return Some(devices.into_iter().nth(i).unwrap());
+            return Some(d)
         }
     }
     None
-    //   devices.into_iter().nth(c).unwrap()
 }
 
 /*
