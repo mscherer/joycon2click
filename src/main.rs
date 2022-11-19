@@ -7,10 +7,9 @@ const PRODUCT_ID: u16 = 8198;
 
 fn get_joycon() -> Option<evdev::Device> {
     // TODO use https://github.com/emberian/evdev/blob/master/examples/_pick_device.rs
-//    let devices = evdev::enumerate().collect::<Vec<_>>();
-    for  d in evdev::enumerate() {
+    for d in evdev::enumerate() {
         if d.input_id().product() == PRODUCT_ID && d.input_id().vendor() == VENDOR_ID {
-            return Some(d)
+            return Some(d);
         }
     }
     None
@@ -34,10 +33,13 @@ fn make_vibrate(j: &mut evdev::Device) {
 
 fn press_right(ui: &mut uinput::Device) {
     ui.click(&uinput::event::keyboard::Key::Right).unwrap();
+    // TODO check
+    // ui.synchronize();
     println!("Pressed right");
 }
 
 fn main() {
+    // TODO see if there is a less ugly code
     let mut ui = uinput::default()
         .unwrap()
         .name("joycon2click")
@@ -51,8 +53,7 @@ fn main() {
         None => println!("No joycon detected"),
 
         Some(mut j) => {
-            println!("Device: {:?}", j.name());
-            // make_vibrate(&mut j);
+            println!("Device found: {:?}", j.name());
             loop {
                 for ev in j.fetch_events().unwrap() {
                     match ev.kind() {
