@@ -1,12 +1,11 @@
-// Nintendo product ID
-const VENDOR_ID: u16 = 1406;
-const PRODUCT_ID_LEFT: u16 = 8198;
-const PRODUCT_ID_RIGHT: u16 = 8199;
+const VID_NINTENDO: u16 = 1406;
+const PID_JOYCON_LEFT: u16 = 8198;
+const PID_JOYCON_RIGHT: u16 = 8199;
 
 fn get_joycon() -> Option<evdev::Device> {
     evdev::enumerate().map(|(_, d)| d).find(|d| {
-        (d.input_id().product() == PRODUCT_ID_RIGHT || d.input_id().product() == PRODUCT_ID_LEFT)
-            && d.input_id().vendor() == VENDOR_ID
+        (d.input_id().product() == PID_JOYCON_RIGHT || d.input_id().product() == PID_JOYCON_LEFT)
+            && d.input_id().vendor() == VID_NINTENDO
     })
 }
 
