@@ -4,6 +4,10 @@ const VID_NINTENDO: u16 = 1406;
 const PID_JOYCON_LEFT: u16 = 8198;
 const PID_JOYCON_RIGHT: u16 = 8199;
 
+use evdev::Key;
+use std::time::{Duration, Instant};
+use uinput::event::keyboard::Key::{Left, Right};
+
 fn get_joycon() -> Option<evdev::Device> {
     evdev::enumerate().map(|(_, d)| d).find(|d| {
         (d.input_id().product() == PID_JOYCON_RIGHT || d.input_id().product() == PID_JOYCON_LEFT)
@@ -11,23 +15,48 @@ fn get_joycon() -> Option<evdev::Device> {
     })
 }
 
-fn press_right(ui: &mut uinput::Device) {
-    ui.click(&uinput::event::keyboard::Key::Right).unwrap();
-    // TODO check
-    // ui.synchronize();
-    println!("Pressed right");
+struct Clicker {
+    last_press: Instant,
+    device: uinput::Device,
+}
+
+impl Clicker {
+    fn new() -> Clicker {
+        // TODO see if there is a less ugly code
+        let ui = uinput::default()
+            .unwrap()
+            .name("joycon2click")
+            .unwrap()
+            .event(uinput::event::Keyboard::All)
+            .unwrap()
+            .create()
+            .unwrap();
+
+        Clicker {
+            last_press: Instant::now(),
+            device: ui,
+        }
+    }
+
+    fn press_key(&mut self, key: uinput::event::keyboard::Key) {
+        if self.last_press.elapsed() >= Duration::from_millis(1000) {
+            self.device.click(&key).unwrap();
+            self.last_press = Instant::now();
+            self.device.synchronize().unwrap()
+        }
+    }
+
+    fn press_left(&mut self) {
+        self.press_key(Left)
+    }
+
+    fn press_right(&mut self) {
+        self.press_key(Right)
+    }
 }
 
 fn main() {
-    // TODO see if there is a less ugly code
-    let mut ui = uinput::default()
-        .unwrap()
-        .name("joycon2click")
-        .unwrap()
-        .event(uinput::event::Keyboard::All)
-        .unwrap()
-        .create()
-        .unwrap();
+    let mut c = Clicker::new();
 
     match get_joycon() {
         None => println!("No joycon detected"),
@@ -37,7 +66,21 @@ fn main() {
             loop {
                 for ev in j.fetch_events().unwrap() {
                     match ev.kind() {
-                        evdev::InputEventKind::Key(_) => press_right(&mut ui),
+                        evdev::InputEventKind::Key(k) => {
+                            println!("{:?}", k);
+                            match k {
+                                Key::BTN_DPAD_LEFT | Key::BTN_WEST => c.press_left(),
+                                Key::BTN_TR
+                                | Key::BTN_TR2
+                                | Key::BTN_DPAD_RIGHT
+                                | Key::BTN_EAST => {
+                                    c.press_right();
+                                }
+                                _ => {
+                                    println!("{:?}", k)
+                                }
+                            }
+                        }
                         k => println!("{:?}", k),
                     }
                 }
