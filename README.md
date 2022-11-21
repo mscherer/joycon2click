@@ -5,5 +5,5 @@ controller) to a key, in order to pass on the next slide on Libreoffice.
 
 Build with `cargo build -r`, run `target/release/joycon2click`.
 
-Once the joycon is connected, any button will be converted to a keyboard
-keypress on Right key.
+Once the joycon is connected, the triggers (L, R, ZL, ZR) and buttons on the right (right arrow on the Dpad for left Joycon, A for the right Joycon) will
+go to next slide, and Y and Left arrow will go back to previous slides by pushing Left and Right.
