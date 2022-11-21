@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 const VID_NINTENDO: u16 = 1406;
 const PID_JOYCON_LEFT: u16 = 8198;
 const PID_JOYCON_RIGHT: u16 = 8199;
