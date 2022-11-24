@@ -5,6 +5,7 @@ const PID_JOYCON_LEFT: u16 = 8198;
 const PID_JOYCON_RIGHT: u16 = 8199;
 
 use evdev::Key;
+use std::process::exit;
 use std::time::{Duration, Instant};
 use uinput::event::keyboard::Key::{Left, Right};
 
@@ -22,15 +23,31 @@ struct Clicker {
 
 impl Clicker {
     fn new() -> Clicker {
-        // TODO see if there is a less ugly code
-        let ui = uinput::default()
-            .unwrap()
-            .name("joycon2click")
-            .unwrap()
-            .event(uinput::event::Keyboard::All)
-            .unwrap()
-            .create()
-            .unwrap();
+        // TODO check error with
+        //    Err` value: Nix(Sys(EACCES))  => perms are wrong
+        let ui = match uinput::default() {
+            Err(uinput::Error::NotFound) => {
+                println!("module uinput is not loaded");
+                exit(1);
+            }
+/*            Err(Errno::EACCES) => {
+                println!("bad permissions on /dev/uinput");
+                exit(1);
+            } */
+            Err(a) => {
+                println!("{:#?}", a);
+                println!("unknown error");
+                exit(1);
+            }
+            // TODO see if there is a less ugly code
+            Ok(u) => u
+                .name("joycon2click")
+                .unwrap()
+                .event(uinput::event::Keyboard::All)
+                .unwrap()
+                .create()
+                .unwrap(),
+        };
 
         Clicker {
             last_press: Instant::now(),
