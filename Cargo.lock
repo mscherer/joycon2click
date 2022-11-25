@@ -117,6 +117,7 @@ name = "joycon2click"
 version = "0.1.0"
 dependencies = [
  "evdev",
+ "nix 0.10.0",
  "uinput",
 ]
 

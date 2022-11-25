@@ -5,6 +5,7 @@ const PID_JOYCON_LEFT: u16 = 8198;
 const PID_JOYCON_RIGHT: u16 = 8199;
 
 use evdev::Key;
+use nix::errno::Errno;
 use std::process::exit;
 use std::time::{Duration, Instant};
 use uinput::event::keyboard::Key::{Left, Right};
@@ -30,10 +31,10 @@ impl Clicker {
                 println!("module uinput is not loaded");
                 exit(1);
             }
-/*            Err(Errno::EACCES) => {
-                println!("bad permissions on /dev/uinput");
+            Err(uinput::Error::Nix(nix::Error::Sys(Errno::EACCES))) => {
+                println!("incorrect permissions on /dev/uinput");
                 exit(1);
-            } */
+            }
             Err(a) => {
                 println!("{:#?}", a);
                 println!("unknown error");
