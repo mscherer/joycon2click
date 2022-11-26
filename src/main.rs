@@ -24,15 +24,16 @@ struct Clicker {
 
 impl Clicker {
     fn new() -> Clicker {
-        // TODO check error with
-        //    Err` value: Nix(Sys(EACCES))  => perms are wrong
         let ui = match uinput::default() {
             Err(uinput::Error::NotFound) => {
                 println!("module uinput is not loaded");
+                println!("run  modprobe uinput  as root to fix");
                 exit(1);
             }
+            // TODO might need to be updated for newer nix crates
             Err(uinput::Error::Nix(nix::Error::Sys(Errno::EACCES))) => {
                 println!("incorrect permissions on /dev/uinput");
+                println!("please see documentation on how to fix this");
                 exit(1);
             }
             Err(a) => {
