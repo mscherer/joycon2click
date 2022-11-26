@@ -4,6 +4,12 @@ const VID_NINTENDO: u16 = 1406;
 const PID_JOYCON_LEFT: u16 = 8198;
 const PID_JOYCON_RIGHT: u16 = 8199;
 
+use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
+use std::process;
+
+use kobject_uevent::ActionType;
+use kobject_uevent::UEvent;
+
 use evdev::Key;
 use nix::errno::Errno;
 use std::process::exit;
@@ -74,6 +80,31 @@ impl Clicker {
     }
 }
 
+#[allow(dead_code)]
+fn wait_for_joycon() {
+    let mut socket = Socket::new(NETLINK_KOBJECT_UEVENT).unwrap();
+    let sa = SocketAddr::new(process::id(), 1);
+    socket.bind(&sa).unwrap();
+
+    loop {
+        let (buf, _) = socket.recv_from_full().unwrap();
+        //        let s = std::str::from_utf8(&buf).unwrap();
+        let u = UEvent::from_netlink_packet(&buf).unwrap();
+        if u.action == ActionType::Bind && u.subsystem == "hid" {
+            match u.env.get("DRIVER") {
+                Some(a) if a == "nintendo" => {
+                    //                    println!("{:#?}", a);
+                    //println!("ok");
+                    //println!("{:#?}", u);
+                    break;
+                }
+                Some(_) => {}
+                None => {}
+            }
+        }
+    }
+}
+
 fn main() {
     let mut c = Clicker::new();
 
@@ -100,7 +131,8 @@ fn main() {
                                 }
                             }
                         }
-                        k => println!("{:?}", k),
+                        //                        k => println!("{:?}", k),
+                        _ => {}
                     }
                 }
             }

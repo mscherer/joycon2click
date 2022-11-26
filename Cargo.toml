@@ -11,3 +11,5 @@ uinput = "*"
 # locked, because of this not being merged https://github.com/meh/rust-uinput/pull/16
 # newer version fail to build due to https://github.com/nix-rust/nix/pull/1446
 nix = "0.10.0"
+netlink-sys = "*"
+kobject-uevent = "*"
