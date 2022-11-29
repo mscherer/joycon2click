@@ -2,7 +2,7 @@
 name = "joycon2click"
 version = "0.1.0"
 edition = "2021"
-
+authors= ["Michaël Scherer"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -13,3 +13,4 @@ uinput = "*"
 nix = "0.10.0"
 netlink-sys = "*"
 kobject-uevent = "*"
+
