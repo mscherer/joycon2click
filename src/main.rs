@@ -80,7 +80,6 @@ impl Clicker {
     }
 }
 
-#[allow(dead_code)]
 fn wait_for_joycon() {
     let mut socket = Socket::new(NETLINK_KOBJECT_UEVENT).unwrap();
     let sa = SocketAddr::new(process::id(), 1);
@@ -93,9 +92,6 @@ fn wait_for_joycon() {
         if u.action == ActionType::Bind && u.subsystem == "hid" {
             match u.env.get("DRIVER") {
                 Some(a) if a == "nintendo" => {
-                    //                    println!("{:#?}", a);
-                    //println!("ok");
-                    //println!("{:#?}", u);
                     break;
                 }
                 Some(_) => {}
@@ -108,31 +104,36 @@ fn wait_for_joycon() {
 fn main() {
     let mut c = Clicker::new();
 
-    match get_joycon() {
-        None => println!("No joycon detected"),
+    loop {
+        match get_joycon() {
+            None => {
+                println!("No joycon detected, entering loop");
+                wait_for_joycon();
+            }
 
-        Some(mut j) => {
-            println!("Device found: {:?}", j.name());
-            loop {
-                for ev in j.fetch_events().unwrap() {
-                    match ev.kind() {
-                        evdev::InputEventKind::Key(k) => {
-                            println!("{:?}", k);
-                            match k {
-                                Key::BTN_DPAD_LEFT | Key::BTN_WEST => c.press_left(),
-                                Key::BTN_TR
-                                | Key::BTN_TR2
-                                | Key::BTN_DPAD_RIGHT
-                                | Key::BTN_EAST => {
-                                    c.press_right();
-                                }
-                                _ => {
-                                    println!("{:?}", k)
+            Some(mut j) => {
+                println!("Device found: {:?}", j.name());
+                loop {
+                    for ev in j.fetch_events().unwrap() {
+                        match ev.kind() {
+                            evdev::InputEventKind::Key(k) => {
+                                println!("{:?}", k);
+                                match k {
+                                    Key::BTN_DPAD_LEFT | Key::BTN_WEST => c.press_left(),
+                                    Key::BTN_TR
+                                    | Key::BTN_TR2
+                                    | Key::BTN_DPAD_RIGHT
+                                    | Key::BTN_EAST => {
+                                        c.press_right();
+                                    }
+                                    _ => {
+                                        println!("Key: {:?}", k)
+                                    }
                                 }
                             }
+                            // k => println!("Event: {:?}", k),
+                            _ => {}
                         }
-                        //                        k => println!("{:?}", k),
-                        _ => {}
                     }
                 }
             }
