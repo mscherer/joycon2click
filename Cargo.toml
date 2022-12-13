@@ -7,10 +7,12 @@ authors= ["Michaël Scherer"]
 
 [dependencies]
 evdev = "*"
-uinput = "*"
+# see https://github.com/meh/rust-uinput/pull/16
+uinput = { version = "*", git = "https://github.com/JBBgameich/rust-uinput", branch = "update-nix" }
+
 # locked, because of this not being merged https://github.com/meh/rust-uinput/pull/16
 # newer version fail to build due to https://github.com/nix-rust/nix/pull/1446
-nix = "0.10.0"
+nix = "0.23.0"
 netlink-sys = "*"
 kobject-uevent = "*"
-
+clap = { version = "*", features = ["derive"] }

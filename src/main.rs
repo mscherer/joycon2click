@@ -10,8 +10,10 @@ use std::process;
 use kobject_uevent::ActionType;
 use kobject_uevent::UEvent;
 
+use clap::Parser;
 use evdev::Key;
 use nix::errno::Errno;
+use nix::unistd::{setuid, User};
 use std::process::exit;
 use std::time::{Duration, Instant};
 use uinput::event::keyboard::Key::{Left, Right};
@@ -21,6 +23,16 @@ fn get_joycon() -> Option<evdev::Device> {
         (d.input_id().product() == PID_JOYCON_RIGHT || d.input_id().product() == PID_JOYCON_LEFT)
             && d.input_id().vendor() == VID_NINTENDO
     })
+}
+
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    #[arg(short, long)]
+    user: Option<String>,
+
+    #[arg(short, long)]
+    debug: bool,
 }
 
 struct Clicker {
@@ -36,8 +48,7 @@ impl Clicker {
                 println!("run  modprobe uinput  as root to fix");
                 exit(1);
             }
-            // TODO might need to be updated for newer nix crates
-            Err(uinput::Error::Nix(nix::Error::Sys(Errno::EACCES))) => {
+            Err(uinput::Error::Nix(Errno::EACCES)) => {
                 println!("incorrect permissions on /dev/uinput");
                 println!("please see documentation on how to fix this");
                 exit(1);
@@ -102,12 +113,35 @@ fn wait_for_joycon() {
 }
 
 fn main() {
+    let cli = Cli::parse();
+
     let mut c = Clicker::new();
+
+    if let Some(user) = cli.user {
+        match User::from_name(&user) {
+            Err(e) => {
+                println!("Error: {:?}", e);
+                exit(1);
+            }
+            Ok(None) => {
+                println!("User {:?} do not exist, exiting", user);
+                exit(1);
+            }
+            Ok(Some(u)) => {
+                setuid(u.uid).expect("setuid");
+                if cli.debug {
+                    println!("Changed uid to {:?}", user);
+                }
+            }
+        }
+    }
 
     loop {
         match get_joycon() {
             None => {
-                println!("No joycon detected, entering loop");
+                if cli.debug {
+                    println!("No joycon detected, entering loop");
+                }
                 wait_for_joycon();
             }
 
@@ -117,7 +151,9 @@ fn main() {
                     for ev in j.fetch_events().unwrap() {
                         match ev.kind() {
                             evdev::InputEventKind::Key(k) => {
-                                println!("{:?}", k);
+                                if cli.debug {
+                                    println!("{:?}", k);
+                                }
                                 match k {
                                     Key::BTN_DPAD_LEFT | Key::BTN_WEST => c.press_left(),
                                     Key::BTN_TR
