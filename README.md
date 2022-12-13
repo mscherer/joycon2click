@@ -19,5 +19,5 @@ A more suitable command might be: `setfacl -m u:$( id -un):rw /dev/input`.
 Be aware that opening uinput mean that any software can start injecting key press. For example, 
 a malware could type commands when you are using a terminal, etc. 
 
-A better security posture could be to run that software as a daemon, then open uinput as
-needed and drop privileges. This code is not written yet.
+The software can be started with -u someuser to switch to that user after opening /dev/uinput, so just
+need to be started as root.
