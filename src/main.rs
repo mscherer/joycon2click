@@ -44,18 +44,18 @@ impl Clicker {
     fn new() -> Clicker {
         let ui = match uinput::default() {
             Err(uinput::Error::NotFound) => {
-                println!("module uinput is not loaded");
-                println!("run  modprobe uinput  as root to fix");
+                println!("Module uinput is not loaded");
+                println!("run modprobe uinput as root to fix");
                 exit(1);
             }
             Err(uinput::Error::Nix(Errno::EACCES)) => {
-                println!("incorrect permissions on /dev/uinput");
+                println!("Incorrect permissions on /dev/uinput");
                 println!("please see documentation on how to fix this");
                 exit(1);
             }
-            Err(a) => {
-                println!("{:#?}", a);
-                println!("unknown error");
+            Err(e) => {
+                println!("Unknown error:");
+                println!("{e:?}");
                 exit(1);
             }
             // TODO see if there is a less ugly code
@@ -120,17 +120,17 @@ fn main() {
     if let Some(user) = cli.user {
         match User::from_name(&user) {
             Err(e) => {
-                println!("Error: {:?}", e);
+                println!("Error: {e:?}");
                 exit(1);
             }
             Ok(None) => {
-                println!("User {:?} do not exist, exiting", user);
+                println!("User {user} do not exist, exiting");
                 exit(1);
             }
             Ok(Some(u)) => {
                 setuid(u.uid).expect("setuid");
                 if cli.debug {
-                    println!("Changed uid to {:?}", user);
+                    println!("Changed uid to {user}");
                 }
             }
         }
@@ -152,7 +152,7 @@ fn main() {
                         match ev.kind() {
                             evdev::InputEventKind::Key(k) => {
                                 if cli.debug {
-                                    println!("{:?}", k);
+                                    println!("{k:?}");
                                 }
                                 match k {
                                     Key::BTN_DPAD_LEFT | Key::BTN_WEST => c.press_left(),
@@ -163,13 +163,13 @@ fn main() {
                                         c.press_right();
                                     }
                                     _ => {
-                                        println!("Key: {:?}", k)
+                                        println!("Key: {k:?}")
                                     }
                                 }
                             }
-                            k => {
+                            ev => {
                                 if cli.debug {
-                                    println!("Event: {:?}", k);
+                                    println!("Event: {ev:?}");
                                 }
                             }
                         }
