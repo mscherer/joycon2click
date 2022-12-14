@@ -6,7 +6,7 @@ jobs:
   check:
     strategy:
       matrix:
-        rust_version: [stable, nightly, 14]
+        rust_version: [stable, nightly]
 
     name: Build rust project
     runs-on: ubuntu-latest
