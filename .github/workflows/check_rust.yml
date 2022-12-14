@@ -1,0 +1,40 @@
+on: [push]
+
+name: check_rust
+
+jobs:
+  check:
+    strategy:
+      matrix:
+        rust_version: [stable, nightly, 14]
+
+    name: Build rust project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install ${{ matrix.rust_version }}
+
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: ${{ matrix.rust_version }}
+            override: true
+            components: rustfmt, clippy
+
+      # TODO refactor ?
+      - name: Run cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Run cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
