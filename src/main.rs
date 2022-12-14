@@ -167,8 +167,11 @@ fn main() {
                                     }
                                 }
                             }
-                            // k => println!("Event: {:?}", k),
-                            _ => {}
+                            k => {
+                                if cli.debug {
+                                    println!("Event: {:?}", k);
+                                }
+                            }
                         }
                     }
                 }
