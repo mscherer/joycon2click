@@ -11,7 +11,7 @@ use kobject_uevent::ActionType;
 use kobject_uevent::UEvent;
 
 use clap::Parser;
-use evdev::Key;
+use evdev::KeyCode;
 use nix::errno::Errno;
 use nix::unistd::{setuid, User};
 use std::process::exit;
@@ -151,17 +151,17 @@ fn main() {
                 println!("Device found: {:?}", j.name());
                 loop {
                     for ev in j.fetch_events().unwrap() {
-                        match ev.kind() {
-                            evdev::InputEventKind::Key(k) => {
+                        match ev.destructure() {
+                            evdev::EventSummary::Key(_, k, 1) => {
                                 if cli.debug {
                                     println!("{k:?}");
                                 }
                                 match k {
-                                    Key::BTN_DPAD_LEFT | Key::BTN_WEST => c.press_left(),
-                                    Key::BTN_TR
-                                    | Key::BTN_TR2
-                                    | Key::BTN_DPAD_RIGHT
-                                    | Key::BTN_EAST => {
+                                    KeyCode::BTN_DPAD_LEFT | KeyCode::BTN_WEST => c.press_left(),
+                                    KeyCode::BTN_TR
+                                    | KeyCode::BTN_TR2
+                                    | KeyCode::BTN_DPAD_RIGHT
+                                    | KeyCode::BTN_EAST => {
                                         c.press_right();
                                     }
                                     _ => {
@@ -169,7 +169,7 @@ fn main() {
                                     }
                                 }
                             }
-                            ev => {
+                            _ => {
                                 if cli.debug {
                                     println!("Event: {ev:?}");
                                 }
