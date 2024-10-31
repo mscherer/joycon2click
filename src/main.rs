@@ -15,6 +15,7 @@ use evdev::Key;
 use nix::errno::Errno;
 use nix::unistd::{setuid, User};
 use std::process::exit;
+use std::thread;
 use std::time::{Duration, Instant};
 use uinput::event::keyboard::Key::{Left, Right};
 
@@ -143,6 +144,7 @@ fn main() {
                     println!("No joycon detected, entering loop");
                 }
                 wait_for_joycon();
+                thread::sleep(Duration::from_millis(2000));
             }
 
             Some(mut j) => {
