@@ -15,4 +15,4 @@ uinput = { version = "*", git = "https://github.com/JBBgameich/rust-uinput", bra
 nix = "0.23.0"
 netlink-sys = "*"
 kobject-uevent = "*"
-clap = { version = "*", features = ["derive"] }
+clap = { version = "*", default-features = false, features = ["derive","std"] }
