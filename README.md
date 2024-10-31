@@ -22,4 +22,4 @@ to the current user.
 Be aware that opening uinput this way mean that any software can start injecting key press. For example, 
 a malware could type commands when you are using a terminal, etc. 
 
-A last potential fix is to start the software as root and use the option `-u someuser` to switch to a unprivilged user after /dev/uinput is opened.
+A last potential fix is to start the software as root and use the option `-u someuser` to switch to a unprivilged user after /dev/uinput is opened. Make sure to switch to either the user on the console, or a user in the `input` group.
