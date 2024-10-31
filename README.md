@@ -14,7 +14,7 @@ For now, the system requires write access to /dev/uinput, and so root access.
 
 The easiest is to use `chmod o+rw /dev/uinput`, but this is not very granular.
 
-A more suitable command might be: `setfacl -m u:$( id -un):rw /dev/input`.
+A more suitable command might be: `setfacl -m u:$( id -un):rw /dev/uinput`.
 
 Be aware that opening uinput mean that any software can start injecting key press. For example, 
 a malware could type commands when you are using a terminal, etc. 
