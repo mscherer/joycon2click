@@ -16,7 +16,7 @@ use nix::errno::Errno;
 use nix::unistd::{setuid, User};
 use std::process::exit;
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use uinput::event::keyboard::Key::{Left, Right};
 
 fn get_joycon() -> Option<evdev::Device> {
@@ -37,7 +37,6 @@ struct Cli {
 }
 
 struct Clicker {
-    last_press: Instant,
     device: uinput::Device,
 }
 
@@ -70,17 +69,13 @@ impl Clicker {
         };
 
         Clicker {
-            last_press: Instant::now(),
             device: ui,
         }
     }
 
     fn press_key(&mut self, key: uinput::event::keyboard::Key) {
-        if self.last_press.elapsed() >= Duration::from_millis(1000) {
             self.device.click(&key).unwrap();
-            self.last_press = Instant::now();
             self.device.synchronize().unwrap()
-        }
     }
 
     fn press_left(&mut self) {
