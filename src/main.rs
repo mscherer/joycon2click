@@ -45,13 +45,13 @@ impl Clicker {
     fn new() -> Clicker {
         let ui = match uinput::default() {
             Err(uinput::Error::NotFound) => {
-                println!("Module uinput is not loaded");
-                println!("run modprobe uinput as root to fix");
+                println!("Module uinput is not loaded.");
+                println!("Run 'modprobe uinput' as root to fix.");
                 exit(1);
             }
             Err(uinput::Error::Nix(Errno::EACCES)) => {
-                println!("Incorrect permissions on /dev/uinput");
-                println!("please see documentation on how to fix this");
+                println!("Incorrect permissions on /dev/uinput.");
+                println!("Please see documentation on how to fix this.");
                 exit(1);
             }
             Err(e) => {
