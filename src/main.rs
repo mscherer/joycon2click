@@ -11,13 +11,15 @@ use kobject_uevent::ActionType;
 use kobject_uevent::UEvent;
 
 use clap::Parser;
-use evdev::KeyCode;
-use nix::errno::Errno;
+use evdev::{
+    uinput::{VirtualDevice, VirtualDeviceBuilder},
+    AttributeSet,
+};
+use evdev::{KeyCode, KeyEvent};
 use nix::unistd::{setuid, User};
 use std::process::exit;
 use std::thread;
 use std::time::Duration;
-use uinput::event::keyboard::Key::{Left, Right};
 
 fn get_joycon() -> Option<evdev::Device> {
     evdev::enumerate().map(|(_, d)| d).find(|d| {
@@ -37,51 +39,39 @@ struct Cli {
 }
 
 struct Clicker {
-    device: uinput::Device,
+    device: VirtualDevice,
 }
 
 impl Clicker {
     fn new() -> Clicker {
-        let ui = match uinput::default() {
-            Err(uinput::Error::NotFound) => {
-                println!("Module uinput is not loaded.");
-                println!("Run 'modprobe uinput' as root to fix.");
-                exit(1);
-            }
-            Err(uinput::Error::Nix(Errno::EACCES)) => {
-                println!("Incorrect permissions on /dev/uinput.");
-                println!("Please see documentation on how to fix this.");
-                exit(1);
-            }
-            Err(e) => {
-                println!("Unknown error:");
-                println!("{e:?}");
-                exit(1);
-            }
-            // TODO see if there is a less ugly code
-            Ok(u) => u
-                .name("joycon2click")
-                .unwrap()
-                .event(uinput::event::Keyboard::All)
-                .unwrap()
-                .create()
-                .unwrap(),
-        };
+        let mut keys = AttributeSet::<KeyCode>::new();
+        keys.insert(KeyCode::BTN_DPAD_LEFT);
+        keys.insert(KeyCode::BTN_DPAD_RIGHT);
 
-        Clicker { device: ui }
+        // TODO see what happen if uinput is not here and/or if there is perm issue
+        let device = VirtualDeviceBuilder::new()
+            .unwrap()
+            .name("Joycon2click virtual keyboard")
+            .with_keys(&keys)
+            .unwrap()
+            .build()
+            .unwrap();
+
+        Clicker { device: device }
     }
 
-    fn press_key(&mut self, key: uinput::event::keyboard::Key) {
-        self.device.click(&key).unwrap();
-        self.device.synchronize().unwrap()
+    fn press_key(&mut self, keycode: KeyCode) {
+        let down_event = *KeyEvent::new(keycode, 1);
+        let up_event = *KeyEvent::new(keycode, 0);
+        self.device.emit(&[down_event, up_event]).unwrap();
     }
 
     fn press_left(&mut self) {
-        self.press_key(Left)
+        self.press_key(KeyCode::BTN_DPAD_LEFT)
     }
 
     fn press_right(&mut self) {
-        self.press_key(Right)
+        self.press_key(KeyCode::BTN_DPAD_RIGHT)
     }
 }
 
