@@ -70,7 +70,7 @@ impl Clicker {
                 .build()
                 .unwrap(),
         };
-        Clicker { device: device }
+        Clicker { device }
     }
 
     fn press_key(&mut self, keycode: KeyCode) {
