@@ -68,14 +68,12 @@ impl Clicker {
                 .unwrap(),
         };
 
-        Clicker {
-            device: ui,
-        }
+        Clicker { device: ui }
     }
 
     fn press_key(&mut self, key: uinput::event::keyboard::Key) {
-            self.device.click(&key).unwrap();
-            self.device.synchronize().unwrap()
+        self.device.click(&key).unwrap();
+        self.device.synchronize().unwrap()
     }
 
     fn press_left(&mut self) {
