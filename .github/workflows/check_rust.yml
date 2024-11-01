@@ -11,12 +11,9 @@ jobs:
     name: Build rust project
     runs-on: ubuntu-latest
     steps:
-      - name: Install packages
-        run: |
-          sudo apt-get -y install libudev-dev
       - uses: actions/checkout@v2
-      - name: Install ${{ matrix.rust_version }}
 
+      - name: Install ${{ matrix.rust_version }}
         uses: actions-rs/toolchain@v1
         with:
             toolchain: ${{ matrix.rust_version }}
