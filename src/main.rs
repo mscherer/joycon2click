@@ -137,6 +137,9 @@ fn main() {
                     println!("No joycon detected, entering loop");
                 }
                 wait_for_joycon();
+                // time needed to make sure that the device appear in
+                // /dev/input after wait_for_joycon return
+                // (not sure why, but 2 sec is enough)
                 thread::sleep(Duration::from_millis(2000));
             }
 
