@@ -4,25 +4,23 @@ const VID_NINTENDO: u16 = 1406;
 const PID_JOYCON_LEFT: u16 = 8198;
 const PID_JOYCON_RIGHT: u16 = 8199;
 
-use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
-
 use std::io::ErrorKind;
-use std::process;
 use std::process::exit;
-use std::thread;
 use std::time::Duration;
+use std::{process, thread};
 
-use kobject_uevent::ActionType;
-use kobject_uevent::UEvent;
-
-use clap::Parser;
 use evdev::{
     uinput::{VirtualDevice, VirtualDeviceBuilder},
-    AttributeSet,
+    {AttributeSet, KeyCode, KeyEvent},
 };
-use evdev::{KeyCode, KeyEvent};
 
 use nix::unistd::{setuid, User};
+
+use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
+
+use kobject_uevent::{ActionType, UEvent};
+
+use clap::Parser;
 
 fn get_joycon() -> Option<evdev::Device> {
     evdev::enumerate().map(|(_, d)| d).find(|d| {
