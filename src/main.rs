@@ -5,7 +5,12 @@ const PID_JOYCON_LEFT: u16 = 8198;
 const PID_JOYCON_RIGHT: u16 = 8199;
 
 use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
+
+use std::io::ErrorKind;
 use std::process;
+use std::process::exit;
+use std::thread;
+use std::time::Duration;
 
 use kobject_uevent::ActionType;
 use kobject_uevent::UEvent;
@@ -16,10 +21,8 @@ use evdev::{
     AttributeSet,
 };
 use evdev::{KeyCode, KeyEvent};
+
 use nix::unistd::{setuid, User};
-use std::process::exit;
-use std::thread;
-use std::time::Duration;
 
 fn get_joycon() -> Option<evdev::Device> {
     evdev::enumerate().map(|(_, d)| d).find(|d| {
@@ -48,15 +51,25 @@ impl Clicker {
         keys.insert(KeyCode::BTN_DPAD_LEFT);
         keys.insert(KeyCode::BTN_DPAD_RIGHT);
 
-        // TODO see what happen if uinput is not here and/or if there is perm issue
-        let device = VirtualDeviceBuilder::new()
-            .unwrap()
-            .name("Joycon2click virtual keyboard")
-            .with_keys(&keys)
-            .unwrap()
-            .build()
-            .unwrap();
+        // TODO see what happen if uinput is not here
+        let device = match VirtualDeviceBuilder::new() {
+            Err(e) if e.kind() == ErrorKind::PermissionDenied => {
+                println!("Permission error on /dev/uinput.");
+                println!("Check the documentation for various workarounds.");
+                exit(1);
+            }
+            Err(e) => {
+                println!("Error: {e:?}");
+                exit(1);
+            }
 
+            Ok(d) => d
+                .name("Joycon2click virtual keyboard")
+                .with_keys(&keys)
+                .unwrap()
+                .build()
+                .unwrap(),
+        };
         Clicker { device: device }
     }
 
