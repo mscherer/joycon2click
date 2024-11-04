@@ -22,6 +22,8 @@ use kobject_uevent::{ActionType, UEvent};
 
 use clap::Parser;
 
+// return 1 single joycon, since the code use `find`
+// multiple joycon support is out of scope for now
 fn get_joycon() -> Option<evdev::Device> {
     evdev::enumerate().map(|(_, d)| d).find(|d| {
         (d.input_id().product() == PID_JOYCON_RIGHT || d.input_id().product() == PID_JOYCON_LEFT)

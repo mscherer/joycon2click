@@ -12,6 +12,8 @@ go to the next slide, and Y and Left arrow will go back to the previous slide by
 
 # Bugs
 
+## Uinput and root account
+
 The system requires write access to /dev/uinput, which requires root access.
 
 The easiest is to use `chmod o+rw /dev/uinput`, but this is a blunt fix.
@@ -23,3 +25,7 @@ Be aware that opening uinput this way mean that any software can start injecting
 a malware could type commands when you are using a terminal, etc. 
 
 A last potential fix is to start the software as root and use the option `-u someuser` to switch to a unprivilged user after /dev/uinput is opened. Make sure to switch to either the user on the console, or a user in the `input` group.
+
+## Multiple joycon support
+
+Only 1 joycon is supported (usually, the 1st one attached, but no garantee on that). Multiple joycons support is out of scope.
