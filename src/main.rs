@@ -48,8 +48,8 @@ struct Clicker {
 impl Clicker {
     fn new() -> Clicker {
         let mut keys = AttributeSet::<KeyCode>::new();
-        keys.insert(KeyCode::BTN_DPAD_LEFT);
-        keys.insert(KeyCode::BTN_DPAD_RIGHT);
+        keys.insert(KeyCode::KEY_LEFT);
+        keys.insert(KeyCode::KEY_RIGHT);
 
         // TODO see what happen if uinput is not here
         let device = match VirtualDeviceBuilder::new() {
@@ -80,11 +80,11 @@ impl Clicker {
     }
 
     fn press_left(&mut self) {
-        self.press_key(KeyCode::BTN_DPAD_LEFT)
+        self.press_key(KeyCode::KEY_LEFT)
     }
 
     fn press_right(&mut self) {
-        self.press_key(KeyCode::BTN_DPAD_RIGHT)
+        self.press_key(KeyCode::KEY_RIGHT)
     }
 }
 
