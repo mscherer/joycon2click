@@ -158,7 +158,9 @@ fn main() {
                                 match k {
                                     KeyCode::BTN_DPAD_LEFT | KeyCode::BTN_WEST => c.press_left(),
                                     KeyCode::BTN_TR
+                                    | KeyCode::BTN_TL
                                     | KeyCode::BTN_TR2
+                                    | KeyCode::BTN_TL2
                                     | KeyCode::BTN_DPAD_RIGHT
                                     | KeyCode::BTN_EAST => {
                                         c.press_right();
