@@ -34,12 +34,15 @@ fn get_joycon() -> Option<evdev::Device> {
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
+    /// Switch to specified user after opening the device as root
     #[arg(short, long)]
     user: Option<String>,
 
+    /// Enable extra debug output
     #[arg(short, long)]
     debug: bool,
 
+    /// Wait to reconnect if the joycon disappeared
     #[arg(short, long)]
     background: bool,
 }
