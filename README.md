@@ -29,3 +29,7 @@ A last potential fix is to start the software as root and use the option `-u som
 ## Multiple joycon support
 
 Only 1 joycon is supported (usually, the 1st one attached, but no garantee on that). Multiple joycons support is out of scope.
+
+## Do not detect joycon disconnection
+
+If the joycon is disconnected, nothing happen. If it reconnect, the software will stop, unless if `-b` is given on the commandline.
