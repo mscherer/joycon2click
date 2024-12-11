@@ -39,6 +39,9 @@ struct Cli {
 
     #[arg(short, long)]
     debug: bool,
+
+    #[arg(short, long)]
+    background: bool,
 }
 
 struct Clicker {
@@ -148,7 +151,8 @@ fn main() {
 
             Some(mut j) => {
                 println!("Device found: {:?}", j.name());
-                loop {
+
+                'fetch_events: loop {
                     // this return a error if the device no longer exist
                     match j.fetch_events() {
                         Ok(evs) => {
@@ -186,8 +190,14 @@ fn main() {
                         // might one day be fixed if the error is correctly handled
                         // eg, if it is no longer: value: Os { code: 19, kind: Uncategorized, message: "No such device" }
                         Err(e) if e.raw_os_error() == Some(19) => {
-                            println!("Joycon disconnected, shutting down");
-                            break 'get_joycon;
+                            if !cli.background {
+                                println!("Joycon disconnected, shutting down");
+                                break 'get_joycon;
+                            } else {
+                                println!("Joycon disconnected, waiting in background");
+                                // break jump at the end of the loop
+                                break 'fetch_events;
+                            }
                         }
                         Err(e) => {
                             println!("Error: {e:?}");
