@@ -203,7 +203,7 @@ fn main() {
                             }
                         }
                         Err(e) => {
-                            println!("Error: {e:?}");
+                            println!("Error with fetch_events: {e:?}");
                             exit(1);
                         }
                     }
