@@ -133,7 +133,7 @@ fn main() {
         }
     }
 
-    loop {
+    'get_joycon: loop {
         match get_joycon() {
             None => {
                 if cli.debug {
@@ -149,32 +149,49 @@ fn main() {
             Some(mut j) => {
                 println!("Device found: {:?}", j.name());
                 loop {
-                    for ev in j.fetch_events().unwrap() {
-                        match ev.destructure() {
-                            evdev::EventSummary::Key(_, k, 1) => {
-                                if cli.debug {
-                                    println!("{k:?}");
-                                }
-                                match k {
-                                    KeyCode::BTN_DPAD_LEFT | KeyCode::BTN_WEST => c.press_left(),
-                                    KeyCode::BTN_TR
-                                    | KeyCode::BTN_TL
-                                    | KeyCode::BTN_TR2
-                                    | KeyCode::BTN_TL2
-                                    | KeyCode::BTN_DPAD_RIGHT
-                                    | KeyCode::BTN_EAST => {
-                                        c.press_right();
+                    // this return a error if the device no longer exist
+                    match j.fetch_events() {
+                        Ok(evs) => {
+                            for ev in evs {
+                                match ev.destructure() {
+                                    evdev::EventSummary::Key(_, k, 1) => {
+                                        if cli.debug {
+                                            println!("{k:?}");
+                                        }
+                                        match k {
+                                            KeyCode::BTN_DPAD_LEFT | KeyCode::BTN_WEST => {
+                                                c.press_left()
+                                            }
+                                            KeyCode::BTN_TR
+                                            | KeyCode::BTN_TL
+                                            | KeyCode::BTN_TR2
+                                            | KeyCode::BTN_TL2
+                                            | KeyCode::BTN_DPAD_RIGHT
+                                            | KeyCode::BTN_EAST => {
+                                                c.press_right();
+                                            }
+                                            _ => {
+                                                println!("Key: {k:?}")
+                                            }
+                                        }
                                     }
                                     _ => {
-                                        println!("Key: {k:?}")
+                                        if cli.debug {
+                                            println!("Event: {ev:?}");
+                                        }
                                     }
                                 }
                             }
-                            _ => {
-                                if cli.debug {
-                                    println!("Event: {ev:?}");
-                                }
-                            }
+                        }
+                        // might one day be fixed if the error is correctly handled
+                        // eg, if it is no longer: value: Os { code: 19, kind: Uncategorized, message: "No such device" }
+                        Err(e) if e.raw_os_error() == Some(19) => {
+                            println!("Joycon disconnected, shutting down");
+                            break 'get_joycon;
+                        }
+                        Err(e) => {
+                            println!("Error: {e:?}");
+                            exit(1);
                         }
                     }
                 }
