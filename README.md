@@ -33,3 +33,9 @@ Only 1 joycon is supported (usually, the 1st one attached, but no garantee on th
 ## Do not detect joycon disconnection
 
 If the joycon is disconnected, nothing happen. If it reconnect, the software will stop, unless if `-b` is given on the commandline.
+
+# Alternatives
+
+A few people have wrote softwares similar to that one, I list them here for reference:
+
+* https://github.com/HonbraDev/joyclicker-rs
