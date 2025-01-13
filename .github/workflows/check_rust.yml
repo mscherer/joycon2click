@@ -22,19 +22,19 @@ jobs:
 
       # TODO refactor ?
       - name: Run cargo build
-        uses: clechasseur/rs-cargo@v2
+        uses: clechasseur/rs-cargo@v3
         with:
           command: build
           args: --release
 
       - name: Run cargo fmt
-        uses: clechasseur/rs-cargo@v2
+        uses: clechasseur/rs-cargo@v3
         with:
           command: fmt
           args: --all -- --check
 
       - name: Run cargo clippy
-        uses: clechasseur/rs-cargo@v2
+        uses: clechasseur/rs-cargo@v3
         with:
           command: clippy
           args: -- -D warnings
