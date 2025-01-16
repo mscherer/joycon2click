@@ -7,7 +7,10 @@ jobs:
     strategy:
       matrix:
         rust_version: [stable, nightly]
-        platform: ['24.04', '24.04-arm']
+        # seems to fail with some cache error for now (2025-01)
+        # just for cargo fmt
+        # platform: ['24.04', '24.04-arm']
+        platform: ['24.04']
     name: Build rust project
     runs-on: ubuntu-${{ matrix.platform }}
     steps:
