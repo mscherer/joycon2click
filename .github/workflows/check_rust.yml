@@ -7,9 +7,9 @@ jobs:
     strategy:
       matrix:
         rust_version: [stable, nightly]
-
+        platform: ['24.04', '24.04-arm']
     name: Build rust project
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
 
