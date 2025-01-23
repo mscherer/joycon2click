@@ -13,8 +13,7 @@ codegen-units = 1
 panic = "abort"
 
 [dependencies]
-# temporary, use latest HEAD
-evdev = { git = "https://github.com/emberian/evdev" }
+evdev = { version = "*" }
 
 nix = { version = "*", features = ['user'] }
 netlink-sys = "*"
