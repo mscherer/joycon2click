@@ -58,6 +58,7 @@ impl Clicker {
         keys.insert(KeyCode::KEY_RIGHT);
 
         // TODO see what happen if uinput is not here
+        #[allow(deprecated)]
         let device = match VirtualDeviceBuilder::new() {
             Err(e) if e.kind() == ErrorKind::PermissionDenied => {
                 println!("Permission error on /dev/uinput.");
