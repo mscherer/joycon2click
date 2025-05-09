@@ -155,27 +155,57 @@ fn main() {
         #[cfg(not(debug_assertions))]
         let action = SeccompAction::Errno(1);
 
+        let mut rules = vec![];
+
         // safe syscalls
         // shouldn't requires any specific arguments filtering
-        let mut rules = vec![
-            // safe syscalls
-            (libc::SYS_close, vec![]),
-            (libc::SYS_read, vec![]),
-            (libc::SYS_recvfrom, vec![]),
-            (libc::SYS_getpid, vec![]),
-            (libc::SYS_getdents64, vec![]),
-            (libc::SYS_bind, vec![]),
-            (libc::SYS_fstat, vec![]),
-        ];
+        for s in vec![
+            libc::SYS_close,
+            libc::SYS_read,
+            libc::SYS_recvfrom,
+            libc::SYS_getpid,
+            libc::SYS_getdents64,
+            libc::SYS_bind,
+            libc::SYS_fstat,
+            //            libc::SYS_write,
+        ]
+        .into_iter()
+        {
+            rules.push((s, vec![]));
+        }
+
+        // all SeccompCondition are combined with and
+        // all SeccompRule are combined with or
+        let mut scr = vec![];
+        for f in vec![libc::STDOUT_FILENO, libc::STDERR_FILENO].into_iter() {
+            scr.push(
+                SeccompRule::new(vec![SeccompCondition::new(
+                    0,
+                    SeccompCmpArgLen::Dword,
+                    SeccompCmpOp::Eq,
+                    f as u64,
+                )
+                .unwrap()])
+                .unwrap(),
+            );
+        }
+        // TODO check the argument for the exact key written
+        // this is used for Clicker
+        scr.push(
+            SeccompRule::new(vec![SeccompCondition::new(
+                0,
+                SeccompCmpArgLen::Dword,
+                SeccompCmpOp::Eq,
+                c.get_device_fd() as u64,
+            )
+            .unwrap()])
+            .unwrap(),
+        );
+
+        rules.push((libc::SYS_write, scr));
 
         // these need more works
         let mut complex_rules = vec![
-            // TODO limit write on the Clicker socket
-            // 1 => stdout => ok
-            // 2 => stderr => ok
-            // 3 => c.get_device_fd() => must check if that's
-            //  KEY_LEFT or KEY_RIGHT
-            (libc::SYS_write, vec![]),
             // TODO check args
             // EVIOCGBIT EVIOCGNAME EVIOCGPHYS EVIOCGUNIQ EVIOCGID, EVIOCGVERSION, EVIOCGPROP
             (libc::SYS_ioctl, vec![]),
