@@ -15,6 +15,7 @@ use {
 };
 
 use std::io::ErrorKind;
+use std::os::fd::AsRawFd;
 use std::process::exit;
 use std::time::Duration;
 use std::{process, thread};
@@ -108,6 +109,11 @@ impl Clicker {
     fn press_right(&mut self) {
         self.press_key(KeyCode::KEY_RIGHT)
     }
+
+    #[allow(dead_code)]
+    fn get_device_fd(&mut self) -> i32 {
+        self.device.as_raw_fd()
+    }
 }
 
 fn wait_for_joycon() {
@@ -154,7 +160,6 @@ fn main() {
         let mut rules = vec![
             // safe syscalls
             (libc::SYS_close, vec![]),
-            (libc::SYS_write, vec![]),
             (libc::SYS_read, vec![]),
             (libc::SYS_recvfrom, vec![]),
             (libc::SYS_getpid, vec![]),
@@ -165,6 +170,12 @@ fn main() {
 
         // these need more works
         let mut complex_rules = vec![
+            // TODO limit write on the Clicker socket
+            // 1 => stdout => ok
+            // 2 => stderr => ok
+            // 3 => c.get_device_fd() => must check if that's
+            //  KEY_LEFT or KEY_RIGHT
+            (libc::SYS_write, vec![]),
             // TODO check args
             // EVIOCGBIT EVIOCGNAME EVIOCGPHYS EVIOCGUNIQ EVIOCGID, EVIOCGVERSION, EVIOCGPROP
             (libc::SYS_ioctl, vec![]),
