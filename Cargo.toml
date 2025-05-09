@@ -5,6 +5,10 @@ edition = "2021"
 authors= ["Michaël Scherer"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["seccomp"]
+seccomp = ["dep:seccompiler"]
+
 [profile.release]
 strip = true
 opt-level = "z"
@@ -19,4 +23,4 @@ nix = { version = "*", features = ['user'] }
 netlink-sys = "*"
 kobject-uevent = "*"
 clap = { version = "*", default-features = false, features = ["derive","std","help","usage"] }
-seccompiler = { version = "*", default-features = false}
+seccompiler = { version = "*", default-features = false, optional = true}

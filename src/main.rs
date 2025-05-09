@@ -4,7 +4,13 @@ const VID_NINTENDO: u16 = 1406;
 const PID_JOYCON_LEFT: u16 = 8198;
 const PID_JOYCON_RIGHT: u16 = 8199;
 
-use std::env::consts::ARCH;
+#[cfg(feature = "seccomp")]
+use {
+    nix::libc,
+    seccompiler::{apply_filter, BpfProgram, SeccompAction, SeccompFilter},
+    std::env::consts::ARCH,
+};
+
 use std::io::ErrorKind;
 use std::process::exit;
 use std::time::Duration;
@@ -15,7 +21,6 @@ use evdev::{
     {AttributeSet, KeyCode, KeyEvent},
 };
 
-use nix::libc;
 use nix::unistd::{setuid, User};
 
 use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
@@ -23,8 +28,6 @@ use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
 use kobject_uevent::{ActionType, UEvent};
 
 use clap::Parser;
-
-use seccompiler::{apply_filter, BpfProgram, SeccompAction, SeccompFilter};
 
 // return 1 single joycon, since the code use `find`
 // multiple joycon support is out of scope for now
@@ -51,6 +54,7 @@ struct Cli {
     background: bool,
 
     /// Disable seccomp
+    #[cfg(feature = "seccomp")]
     #[arg(long)]
     disable_seccomp: bool,
 }
@@ -129,6 +133,7 @@ fn main() {
 
     let mut c = Clicker::new();
 
+    #[cfg(feature = "seccomp")]
     if !cli.disable_seccomp {
         if cli.debug {
             println!("Enabling seccomp filter");
