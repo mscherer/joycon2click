@@ -26,6 +26,11 @@ a malware could type commands when you are using a terminal, etc.
 
 A last potential fix is to start the software as root and use the option `-u someuser` to switch to a unprivilged user after /dev/uinput is opened. Make sure to switch to either the user on the console, or a user in the `input` group.
 
+## Seccomp
+
+By default, the program will limit itself using seccomp and BPF. This is still a experimental feature, and can be disabled with the `--disable_seccomp` argument if this cause issues.
+For now, the filtering is not very granular and only allow a few syscalls, but there is plans to later restrict their arguments.
+
 ## Multiple joycon support
 
 Only 1 joycon is supported (usually, the 1st one attached, but no garantee on that). Multiple joycons support is out of scope.

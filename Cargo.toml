@@ -19,3 +19,4 @@ nix = { version = "*", features = ['user'] }
 netlink-sys = "*"
 kobject-uevent = "*"
 clap = { version = "*", default-features = false, features = ["derive","std","help","usage"] }
+seccompiler = { version = "*", default-features = false}

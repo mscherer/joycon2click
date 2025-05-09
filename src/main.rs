@@ -4,6 +4,7 @@ const VID_NINTENDO: u16 = 1406;
 const PID_JOYCON_LEFT: u16 = 8198;
 const PID_JOYCON_RIGHT: u16 = 8199;
 
+use std::env::consts::ARCH;
 use std::io::ErrorKind;
 use std::process::exit;
 use std::time::Duration;
@@ -14,6 +15,7 @@ use evdev::{
     {AttributeSet, KeyCode, KeyEvent},
 };
 
+use nix::libc;
 use nix::unistd::{setuid, User};
 
 use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
@@ -21,6 +23,8 @@ use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
 use kobject_uevent::{ActionType, UEvent};
 
 use clap::Parser;
+
+use seccompiler::{apply_filter, BpfProgram, SeccompAction, SeccompFilter};
 
 // return 1 single joycon, since the code use `find`
 // multiple joycon support is out of scope for now
@@ -45,6 +49,10 @@ struct Cli {
     /// Wait to reconnect if the joycon disappeared
     #[arg(short, long)]
     background: bool,
+
+    /// Disable seccomp
+    #[arg(long)]
+    disable_seccomp: bool,
 }
 
 struct Clicker {
@@ -120,6 +128,65 @@ fn main() {
     let cli = Cli::parse();
 
     let mut c = Clicker::new();
+
+    if !cli.disable_seccomp {
+        if cli.debug {
+            println!("Enabling seccomp filter");
+        }
+
+        #[cfg(debug_assertions)]
+        let action = SeccompAction::Log;
+
+        // 1 is EPERM
+        #[cfg(not(debug_assertions))]
+        let action = SeccompAction::Errno(1);
+
+        // safe syscalls
+        // shouldn't requires any specific arguments filtering
+        let mut rules = vec![
+            // safe syscalls
+            (libc::SYS_close, vec![]),
+            (libc::SYS_write, vec![]),
+            (libc::SYS_read, vec![]),
+            (libc::SYS_recvfrom, vec![]),
+            (libc::SYS_getpid, vec![]),
+            (libc::SYS_getdents64, vec![]),
+            (libc::SYS_bind, vec![]),
+            (libc::SYS_fstat, vec![]),
+        ];
+
+        // these need more works
+        let mut complex_rules = vec![
+            // TODO check args
+            // EVIOCGBIT EVIOCGNAME EVIOCGPHYS EVIOCGUNIQ EVIOCGID, EVIOCGVERSION, EVIOCGPROP
+            (libc::SYS_ioctl, vec![]),
+            // TODO should be NETLINK_KOBJECT_UEVENT only
+            // socket(AF_NETLINK, SOCK_DGRAM|SOCK_CLOEXEC, NETLINK_KOBJECT_UEVENT) = 4
+            // SeccompCondition::new(2, SeccompCmpArgLen::Dword, SeccompCmpOp::Eq, NETLINK_KOBJECT_UEVENT).unwrap();
+            // SeccompCondition::new(0, SeccompCmpArgLen::Dword, SeccompCmpOp::Eq, AF_NETLINK).unwrap();
+            (libc::SYS_socket, vec![]),
+            // TODO check 1st arg is F_GETFD
+            // SeccompCondition::new(0, SeccompCmpArgLen::Dword, SeccompCmpOp::Eq, F_GETFD).unwrap();
+            (libc::SYS_fcntl, vec![]),
+            // TODO should be only in /dev/input ?
+            (libc::SYS_openat, vec![]),
+            // TODO setuid if cli.user is set ?
+            (libc::SYS_setuid, vec![]),
+        ];
+
+        rules.append(&mut complex_rules);
+
+        let filter = SeccompFilter::new(
+            rules.into_iter().collect(),
+            action,
+            SeccompAction::Allow,
+            ARCH.try_into().unwrap(),
+        )
+        .unwrap();
+
+        let filter: BpfProgram = filter.try_into().unwrap();
+        apply_filter(&filter).unwrap();
+    }
 
     if let Some(user) = cli.user {
         match User::from_name(&user) {
