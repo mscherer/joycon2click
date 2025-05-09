@@ -31,6 +31,8 @@ A last potential fix is to start the software as root and use the option `-u som
 By default, the program will limit itself using seccomp and BPF. This is still a experimental feature, and can be disabled with the `--disable_seccomp` argument if this cause issues.
 For now, the filtering is not very granular and only allow a few syscalls, but there is plans to later restrict their arguments.
 
+You can also disable seccomp at build time by using the feature `seccomp`.
+
 ## Multiple joycon support
 
 Only 1 joycon is supported (usually, the 1st one attached, but no garantee on that). Multiple joycons support is out of scope.
