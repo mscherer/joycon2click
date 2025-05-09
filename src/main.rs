@@ -7,7 +7,10 @@ const PID_JOYCON_RIGHT: u16 = 8199;
 #[cfg(feature = "seccomp")]
 use {
     nix::libc,
-    seccompiler::{apply_filter, BpfProgram, SeccompAction, SeccompFilter},
+    seccompiler::{
+        apply_filter, BpfProgram, SeccompAction, SeccompCmpArgLen, SeccompCmpOp, SeccompCondition,
+        SeccompFilter, SeccompRule,
+    },
     std::env::consts::ARCH,
 };
 
@@ -165,14 +168,38 @@ fn main() {
             // TODO check args
             // EVIOCGBIT EVIOCGNAME EVIOCGPHYS EVIOCGUNIQ EVIOCGID, EVIOCGVERSION, EVIOCGPROP
             (libc::SYS_ioctl, vec![]),
-            // TODO should be NETLINK_KOBJECT_UEVENT only
-            // socket(AF_NETLINK, SOCK_DGRAM|SOCK_CLOEXEC, NETLINK_KOBJECT_UEVENT) = 4
-            // SeccompCondition::new(2, SeccompCmpArgLen::Dword, SeccompCmpOp::Eq, NETLINK_KOBJECT_UEVENT).unwrap();
-            // SeccompCondition::new(0, SeccompCmpArgLen::Dword, SeccompCmpOp::Eq, AF_NETLINK).unwrap();
-            (libc::SYS_socket, vec![]),
-            // TODO check 1st arg is F_GETFD
-            // SeccompCondition::new(0, SeccompCmpArgLen::Dword, SeccompCmpOp::Eq, F_GETFD).unwrap();
-            (libc::SYS_fcntl, vec![]),
+            // only allow opening a socket to uevent
+            (
+                libc::SYS_socket,
+                vec![SeccompRule::new(vec![
+                    SeccompCondition::new(
+                        0,
+                        SeccompCmpArgLen::Dword,
+                        SeccompCmpOp::Eq,
+                        libc::AF_NETLINK as u64,
+                    )
+                    .unwrap(),
+                    SeccompCondition::new(
+                        2,
+                        SeccompCmpArgLen::Dword,
+                        SeccompCmpOp::Eq,
+                        libc::NETLINK_KOBJECT_UEVENT as u64,
+                    )
+                    .unwrap(),
+                ])
+                .unwrap()],
+            ),
+            (
+                libc::SYS_fcntl,
+                vec![SeccompRule::new(vec![SeccompCondition::new(
+                    1,
+                    SeccompCmpArgLen::Dword,
+                    SeccompCmpOp::Eq,
+                    libc::F_GETFD as u64,
+                )
+                .unwrap()])
+                .unwrap()],
+            ),
             // TODO should be only in /dev/input ?
             (libc::SYS_openat, vec![]),
             // TODO setuid if cli.user is set ?
