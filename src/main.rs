@@ -177,7 +177,8 @@ fn main() {
         // all SeccompCondition are combined with and
         // all SeccompRule are combined with or
         let mut scr = vec![];
-        for f in vec![libc::STDOUT_FILENO, libc::STDERR_FILENO].into_iter() {
+        // we can't easily check the arguments of write due to the way it work
+        for f in vec![libc::STDOUT_FILENO, libc::STDERR_FILENO, c.get_device_fd()].into_iter() {
             scr.push(
                 SeccompRule::new(vec![SeccompCondition::new(
                     0,
@@ -189,26 +190,15 @@ fn main() {
                 .unwrap(),
             );
         }
-        // TODO check the argument for the exact key written
-        // this is used for Clicker
-        scr.push(
-            SeccompRule::new(vec![SeccompCondition::new(
-                0,
-                SeccompCmpArgLen::Dword,
-                SeccompCmpOp::Eq,
-                c.get_device_fd() as u64,
-            )
-            .unwrap()])
-            .unwrap(),
-        );
-
         rules.push((libc::SYS_write, scr));
+
+        // once setuid is done, no risk of setuid again
+        if cli.user.is_some() {
+            rules.push((libc::SYS_setuid, vec![]));
+        }
 
         // these need more works
         let mut complex_rules = vec![
-            // TODO check args
-            // EVIOCGBIT EVIOCGNAME EVIOCGPHYS EVIOCGUNIQ EVIOCGID, EVIOCGVERSION, EVIOCGPROP
-            (libc::SYS_ioctl, vec![]),
             // only allow opening a socket to uevent
             (
                 libc::SYS_socket,
@@ -241,10 +231,11 @@ fn main() {
                 .unwrap()])
                 .unwrap()],
             ),
+            // TODO check args
+            // EVIOCGBIT EVIOCGNAME EVIOCGPHYS EVIOCGUNIQ EVIOCGID, EVIOCGVERSION, EVIOCGPROP
+            (libc::SYS_ioctl, vec![]),
             // TODO should be only in /dev/input ?
             (libc::SYS_openat, vec![]),
-            // TODO setuid if cli.user is set ?
-            (libc::SYS_setuid, vec![]),
         ];
 
         rules.append(&mut complex_rules);
