@@ -71,6 +71,6 @@ impl clap::builder::TypedValueParser for ParsedUserParser {
                 }
             }
         }
-        return Err(err);
+        Err(err)
     }
 }
