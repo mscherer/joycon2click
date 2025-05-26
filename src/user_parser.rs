@@ -45,11 +45,25 @@ impl clap::builder::TypedValueParser for ParsedUserParser {
             );
         }
         if let Some(user) = value.to_str() {
+            err.insert(
+                ContextKind::InvalidValue,
+                ContextValue::String(user.to_string()),
+            );
+            // TODO seems ContextKind::Custom is unused
+            // https://github.com/clap-rs/clap/discussions/5318#discussioncomment-8185351
             match User::from_name(user) {
                 Err(e) => {
+                    err.insert(
+                        ContextKind::Custom,
+                        ContextValue::String(format!("{:?}", e)),
+                    );
                     return Err(err);
                 }
                 Ok(None) => {
+                    err.insert(
+                        ContextKind::Custom,
+                        ContextValue::String(format!("User {user} not found")),
+                    );
                     return Err(err);
                 }
                 Ok(Some(u)) => {
