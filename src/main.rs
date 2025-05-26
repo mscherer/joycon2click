@@ -15,6 +15,7 @@ use evdev::{
     {AttributeSet, KeyCode, KeyEvent},
 };
 
+#[cfg(feature = "sandbox")]
 use nix::sys::prctl::set_no_new_privs;
 
 use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
