@@ -26,12 +26,12 @@ a malware could type commands when you are using a terminal, etc.
 
 A last potential fix is to start the software as root and use the option `-u someuser` to switch to a unprivilged user after /dev/uinput is opened. Make sure to switch to either the user on the console, or a user in the `input` group.
 
-## Seccomp
+## Seccomp and landlock
 
-By default, the program will limit itself using seccomp and BPF. This is still a experimental feature, and can be disabled with the `--disable_seccomp` argument if this cause issues.
-For now, the filtering is not very granular and only allow a few syscalls, but there is plans to later restrict their arguments.
+By default, the program will inot limit itself in anything.
 
-You can also disable seccomp at build time by using the feature `seccomp`.
+At build time, you can choose between 2 experimental backend for self confining, with features `landlock` and`seccomp`. Both are incomplete for now.
+You can disable the sandboxing at run time using `--disable-sandbox`.
 
 ## Multiple joycon support
 

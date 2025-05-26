@@ -4,7 +4,6 @@ const VID_NINTENDO: u16 = 1406;
 const PID_JOYCON_LEFT: u16 = 8198;
 const PID_JOYCON_RIGHT: u16 = 8199;
 
-
 use std::io::ErrorKind;
 use std::os::fd::AsRawFd;
 use std::process::exit;
@@ -30,6 +29,17 @@ pub mod seccomp;
 #[cfg(feature = "landlock")]
 pub mod landlock;
 
+#[cfg(all(
+    feature = "sandbox",
+    not(any(feature = "landlock", feature = "seccomp"))
+))]
+compile_error!("Please enable \"landlock\" or \"seccomp\" for sandbox.");
+
+#[cfg(all(feature = "landlock", feature = "seccomp"))]
+compile_error!(
+    "Only one feature out of \"landlock\" or \"seccomp\" must be enabled for this crate."
+);
+
 // return 1 single joycon, since the code use `find`
 // multiple joycon support is out of scope for now
 fn get_joycon() -> Option<evdev::Device> {
@@ -54,15 +64,10 @@ struct Cli {
     #[arg(short, long)]
     background: bool,
 
-    /// Disable seccomp
-    #[cfg(feature = "seccomp")]
+    /// Disable sandbox
+    #[cfg(feature = "sandbox")]
     #[arg(long)]
-    disable_seccomp: bool,
-
-    /// Disable landlock
-    #[cfg(feature = "landlock")]
-    #[arg(long)]
-    disable_landlock: bool,
+    disable_sandbox: bool,
 }
 
 struct Clicker {
@@ -144,26 +149,19 @@ fn main() {
 
     let mut c = Clicker::new();
 
-    #[cfg(feature = "landlock")]
-    if !cli.disable_landlock {
+    #[cfg(feature = "sandbox")]
+    if !cli.disable_sandbox {
         if cli.debug {
-            println!("Enabling landlock filter");
+            println!("Enabling sandboxing ");
         }
 
-        let l = landlock::LandlockConfiner::new();
-        if let Err(e) = l.confine() {
-            println!("Can't confine: {e}");
-            exit(1);
-        }
-    }
+        #[cfg(feature = "landlock")]
+        let confiner = landlock::LandlockConfiner::new();
 
-    #[cfg(feature = "seccomp")]
-    if !cli.disable_seccomp {
-        if cli.debug {
-            println!("Enabling seccomp filter");
-        }
-        let c = seccomp::SeccompConfiner::new(true, c.get_device_fd());
-        if let Err(e) = c.confine() {
+        #[cfg(feature = "seccomp")]
+        let confiner = seccomp::SeccompConfiner::new(true, c.get_device_fd());
+
+        if let Err(e) = confiner.confine() {
             println!("Can't confine: {e}");
             exit(1);
         }

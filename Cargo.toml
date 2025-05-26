@@ -6,10 +6,10 @@ authors= ["Michaël Scherer"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["hardening"]
-hardening = ["seccomp"]
-seccomp = ["dep:seccompiler"]
-landlock = ["dep:landlock"]
+default = []
+seccomp = ["dep:seccompiler", "sandbox"]
+landlock = ["dep:landlock", "sandbox"]
+sandbox = []
 
 [profile.release]
 strip = true
