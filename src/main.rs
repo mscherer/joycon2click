@@ -25,13 +25,13 @@ use evdev::{
     {AttributeSet, KeyCode, KeyEvent},
 };
 
-use nix::unistd::{setuid, User};
-
 use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
 
 use kobject_uevent::{ActionType, UEvent};
 
 use clap::Parser;
+
+pub mod user_parser;
 
 // return 1 single joycon, since the code use `find`
 // multiple joycon support is out of scope for now
@@ -47,7 +47,7 @@ fn get_joycon() -> Option<evdev::Device> {
 struct Cli {
     /// Switch to specified user after opening the device as root
     #[arg(short, long)]
-    user: Option<String>,
+    user: Option<user_parser::ParsedUser>,
 
     /// Enable extra debug output
     #[arg(short, long)]
@@ -253,21 +253,10 @@ fn main() {
     }
 
     if let Some(user) = cli.user {
-        match User::from_name(&user) {
-            Err(e) => {
-                println!("Error: {e:?}");
-                exit(1);
-            }
-            Ok(None) => {
-                println!("User {user} do not exist, exiting");
-                exit(1);
-            }
-            Ok(Some(u)) => {
-                setuid(u.uid).expect("setuid");
-                if cli.debug {
-                    println!("Changed uid to {user}");
-                }
-            }
+        user.setuid().expect("setuid");
+
+        if cli.debug {
+            println!("Changed uid to {user}");
         }
     }
 
