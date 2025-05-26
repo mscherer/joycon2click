@@ -1,5 +1,5 @@
 A quickly written software to convert button push on a Joycon (Nintendo Switch 
-controller) to a regular keypress in order to pass on the next slide on Libreoffice.
+controller) to a regular key-press in order to pass on the next slide on Libreoffice.
 
 # Usage
 
@@ -24,25 +24,25 @@ to the current user.
 Be aware that opening uinput this way mean that any software can start injecting key press. For example, 
 a malware could type commands when you are using a terminal, etc. 
 
-A last potential fix is to start the software as root and use the option `-u someuser` to switch to a unprivilged user after /dev/uinput is opened. Make sure to switch to either the user on the console, or a user in the `input` group.
+A last potential fix is to start the software as root and use the option `-u someuser` to switch to a unprivileged user after /dev/uinput is opened. Make sure to switch to either the user on the console, or a user in the `input` group.
 
 ## Seccomp and landlock
 
-By default, the program will inot limit itself in anything.
+By default, the program will not limit itself in anything.
 
-At build time, you can choose between 2 experimental backend for self confining, with features `landlock` and`seccomp`. Both are incomplete for now.
+At build time, you can choose between 2 experimental back-end for self confining, with features `landlock` and`seccomp`. Both are incomplete for now.
 You can disable the sandboxing at run time using `--disable-sandbox`.
 
 ## Multiple joycon support
 
-Only 1 joycon is supported (usually, the 1st one attached, but no garantee on that). Multiple joycons support is out of scope.
+Only 1 joycon is supported (usually, the 1st one attached, but no guarantee on that). Multiple joycons support is out of scope.
 
 ## Do not detect joycon disconnection
 
-If the joycon is disconnected, nothing happen. If it reconnect, the software will stop, unless if `-b` is given on the commandline.
+If the joycon is disconnected, nothing happen. If it reconnect, the software will stop, unless if `-b` is given on the command-line.
 
 # Alternatives
 
-A few people have wrote softwares similar to that one, I list them here for reference:
+A few people have wrote software similar to that one, I list them here for reference:
 
 * https://github.com/HonbraDev/joyclicker-rs
