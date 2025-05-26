@@ -55,7 +55,7 @@ impl clap::builder::TypedValueParser for ParsedUserParser {
                 Err(e) => {
                     err.insert(
                         ContextKind::Custom,
-                        ContextValue::String(format!("{:?}", e)),
+                        ContextValue::String(format!("{e:?}")),
                     );
                     return Err(err);
                 }
