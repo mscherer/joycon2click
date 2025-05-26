@@ -4,6 +4,7 @@ const VID_NINTENDO: u16 = 1406;
 const PID_JOYCON_LEFT: u16 = 8198;
 const PID_JOYCON_RIGHT: u16 = 8199;
 
+
 use std::io::ErrorKind;
 use std::os::fd::AsRawFd;
 use std::process::exit;
@@ -25,6 +26,9 @@ pub mod user_parser;
 
 #[cfg(feature = "seccomp")]
 pub mod seccomp;
+
+#[cfg(feature = "landlock")]
+pub mod landlock;
 
 // return 1 single joycon, since the code use `find`
 // multiple joycon support is out of scope for now
@@ -54,6 +58,11 @@ struct Cli {
     #[cfg(feature = "seccomp")]
     #[arg(long)]
     disable_seccomp: bool,
+
+    /// Disable landlock
+    #[cfg(feature = "landlock")]
+    #[arg(long)]
+    disable_landlock: bool,
 }
 
 struct Clicker {
@@ -134,6 +143,19 @@ fn main() {
     let cli = Cli::parse();
 
     let mut c = Clicker::new();
+
+    #[cfg(feature = "landlock")]
+    if !cli.disable_landlock {
+        if cli.debug {
+            println!("Enabling landlock filter");
+        }
+
+        let l = landlock::LandlockConfiner::new();
+        if let Err(e) = l.confine() {
+            println!("Can't confine: {e}");
+            exit(1);
+        }
+    }
 
     #[cfg(feature = "seccomp")]
     if !cli.disable_seccomp {

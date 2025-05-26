@@ -9,6 +9,7 @@ authors= ["Michaël Scherer"]
 default = ["hardening"]
 hardening = ["seccomp"]
 seccomp = ["dep:seccompiler"]
+landlock = ["dep:landlock"]
 
 [profile.release]
 strip = true
@@ -25,3 +26,4 @@ netlink-sys = "*"
 kobject-uevent = "*"
 clap = { version = "*", default-features = false, features = ["derive","std","help","usage","error-context"] }
 seccompiler = { version = "*", default-features = false, optional = true}
+landlock = { version = "*", default-features = false, optional = true}
