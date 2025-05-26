@@ -8,6 +8,7 @@ jobs:
       matrix:
         rust_version: [stable, nightly]
         platform: ['24.04', '24.04-arm']
+        features: ["default", "landlock", "seccomp"]
     name: Build rust project
     runs-on: ubuntu-${{ matrix.platform }}
     steps:
@@ -25,7 +26,7 @@ jobs:
         uses: clechasseur/rs-cargo@v3
         with:
           command: build
-          args: --release
+          args: --release -F ${{ matrix.features }}
 
       - name: Run cargo fmt
         uses: clechasseur/rs-cargo@v3
