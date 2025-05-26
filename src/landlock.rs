@@ -1,7 +1,4 @@
-use landlock::{
-    Access, AccessFs, AccessNet, RestrictionStatus, Ruleset, RulesetAttr, RulesetCreatedAttr,
-    RulesetError, RulesetStatus, Scope, ABI,
-};
+use landlock::{AccessFs, RestrictionStatus, Ruleset, RulesetAttr, RulesetError, ABI};
 
 pub struct LandlockConfiner {}
 
