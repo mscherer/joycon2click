@@ -4,16 +4,6 @@ const VID_NINTENDO: u16 = 1406;
 const PID_JOYCON_LEFT: u16 = 8198;
 const PID_JOYCON_RIGHT: u16 = 8199;
 
-#[cfg(feature = "seccomp")]
-use {
-    nix::libc,
-    seccompiler::{
-        apply_filter, BpfProgram, SeccompAction, SeccompCmpArgLen, SeccompCmpOp, SeccompCondition,
-        SeccompFilter, SeccompRule,
-    },
-    std::env::consts::ARCH,
-};
-
 use std::io::ErrorKind;
 use std::os::fd::AsRawFd;
 use std::process::exit;
@@ -32,6 +22,9 @@ use kobject_uevent::{ActionType, UEvent};
 use clap::Parser;
 
 pub mod user_parser;
+
+#[cfg(feature = "seccomp")]
+pub mod seccomp;
 
 // return 1 single joycon, since the code use `find`
 // multiple joycon support is out of scope for now
@@ -147,109 +140,11 @@ fn main() {
         if cli.debug {
             println!("Enabling seccomp filter");
         }
-
-        #[cfg(debug_assertions)]
-        let action = SeccompAction::Log;
-
-        // 1 is EPERM
-        #[cfg(not(debug_assertions))]
-        let action = SeccompAction::Errno(1);
-
-        let mut rules = vec![];
-
-        // safe syscalls
-        // shouldn't requires any specific arguments filtering
-        for s in vec![
-            libc::SYS_close,
-            libc::SYS_read,
-            libc::SYS_recvfrom,
-            libc::SYS_getpid,
-            libc::SYS_getdents64,
-            libc::SYS_bind,
-            libc::SYS_fstat,
-            //            libc::SYS_write,
-        ]
-        .into_iter()
-        {
-            rules.push((s, vec![]));
+        let c = seccomp::SeccompConfiner::new(true, c.get_device_fd());
+        if let Err(e) = c.confine() {
+            println!("Can't confine: {e}");
+            exit(1);
         }
-
-        // all SeccompCondition are combined with and
-        // all SeccompRule are combined with or
-        let mut scr = vec![];
-        // we can't easily check the arguments of write due to the way it work
-        for f in vec![libc::STDOUT_FILENO, libc::STDERR_FILENO, c.get_device_fd()].into_iter() {
-            scr.push(
-                SeccompRule::new(vec![SeccompCondition::new(
-                    0,
-                    SeccompCmpArgLen::Dword,
-                    SeccompCmpOp::Eq,
-                    f as u64,
-                )
-                .unwrap()])
-                .unwrap(),
-            );
-        }
-        rules.push((libc::SYS_write, scr));
-
-        // once setuid is done, no risk of setuid again
-        if cli.user.is_some() {
-            rules.push((libc::SYS_setuid, vec![]));
-        }
-
-        // these need more works
-        let mut complex_rules = vec![
-            // only allow opening a socket to uevent
-            (
-                libc::SYS_socket,
-                vec![SeccompRule::new(vec![
-                    SeccompCondition::new(
-                        0,
-                        SeccompCmpArgLen::Dword,
-                        SeccompCmpOp::Eq,
-                        libc::AF_NETLINK as u64,
-                    )
-                    .unwrap(),
-                    SeccompCondition::new(
-                        2,
-                        SeccompCmpArgLen::Dword,
-                        SeccompCmpOp::Eq,
-                        libc::NETLINK_KOBJECT_UEVENT as u64,
-                    )
-                    .unwrap(),
-                ])
-                .unwrap()],
-            ),
-            (
-                libc::SYS_fcntl,
-                vec![SeccompRule::new(vec![SeccompCondition::new(
-                    1,
-                    SeccompCmpArgLen::Dword,
-                    SeccompCmpOp::Eq,
-                    libc::F_GETFD as u64,
-                )
-                .unwrap()])
-                .unwrap()],
-            ),
-            // TODO check args
-            // EVIOCGBIT EVIOCGNAME EVIOCGPHYS EVIOCGUNIQ EVIOCGID, EVIOCGVERSION, EVIOCGPROP
-            (libc::SYS_ioctl, vec![]),
-            // TODO should be only in /dev/input ?
-            (libc::SYS_openat, vec![]),
-        ];
-
-        rules.append(&mut complex_rules);
-
-        let filter = SeccompFilter::new(
-            rules.into_iter().collect(),
-            action,
-            SeccompAction::Allow,
-            ARCH.try_into().unwrap(),
-        )
-        .unwrap();
-
-        let filter: BpfProgram = filter.try_into().unwrap();
-        apply_filter(&filter).unwrap();
     }
 
     if let Some(user) = cli.user {
