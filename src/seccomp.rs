@@ -52,14 +52,12 @@ impl SeccompConfiner {
         let mut scr = vec![];
         // we can't easily check the arguments of write due to the way it work
         for f in vec![libc::STDOUT_FILENO, libc::STDERR_FILENO, self.device_fd].into_iter() {
-            scr.push(
-                SeccompRule::new(vec![SeccompCondition::new(
-                    0,
-                    SeccompCmpArgLen::Dword,
-                    SeccompCmpOp::Eq,
-                    f as u64,
-                )?])?,
-            );
+            scr.push(SeccompRule::new(vec![SeccompCondition::new(
+                0,
+                SeccompCmpArgLen::Dword,
+                SeccompCmpOp::Eq,
+                f as u64,
+            )?])?);
         }
         rules.push((libc::SYS_write, scr));
 
