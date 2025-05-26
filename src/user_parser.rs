@@ -53,10 +53,7 @@ impl clap::builder::TypedValueParser for ParsedUserParser {
             // https://github.com/clap-rs/clap/discussions/5318#discussioncomment-8185351
             match User::from_name(user) {
                 Err(e) => {
-                    err.insert(
-                        ContextKind::Custom,
-                        ContextValue::String(format!("{e:?}")),
-                    );
+                    err.insert(ContextKind::Custom, ContextValue::String(format!("{e:?}")));
                     return Err(err);
                 }
                 Ok(None) => {
