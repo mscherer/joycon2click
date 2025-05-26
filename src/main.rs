@@ -15,6 +15,8 @@ use evdev::{
     {AttributeSet, KeyCode, KeyEvent},
 };
 
+use nix::sys::prctl::set_no_new_privs;
+
 use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
 
 use kobject_uevent::{ActionType, UEvent};
@@ -153,6 +155,11 @@ fn main() {
     if !cli.disable_sandbox {
         if cli.debug {
             println!("Enabling sandboxing ");
+        }
+
+        if let Err(e) = set_no_new_privs() {
+            println!("Can't set no new privs: {e}");
+            exit(1);
         }
 
         #[cfg(feature = "landlock")]
