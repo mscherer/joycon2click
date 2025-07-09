@@ -58,3 +58,9 @@ impl Clicker {
         self.device.as_raw_fd()
     }
 }
+
+impl Default for Clicker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
