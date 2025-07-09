@@ -40,17 +40,17 @@ impl Clicker {
         Ok(Clicker { device })
     }
 
-    fn press_key(&mut self, keycode: KeyCode) {
+    fn press_key(&mut self, keycode: KeyCode) -> Result<(), std::io::Error> {
         let down_event = *KeyEvent::new(keycode, 1);
         let up_event = *KeyEvent::new(keycode, 0);
-        self.device.emit(&[down_event, up_event]).unwrap();
+        self.device.emit(&[down_event, up_event])
     }
 
-    pub fn press_left(&mut self) {
+    pub fn press_left(&mut self) -> Result<(), std::io::Error> {
         self.press_key(KeyCode::KEY_LEFT)
     }
 
-    pub fn press_right(&mut self) {
+    pub fn press_right(&mut self) -> Result<(), std::io::Error> {
         self.press_key(KeyCode::KEY_RIGHT)
     }
 
