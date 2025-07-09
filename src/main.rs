@@ -93,7 +93,13 @@ fn wait_for_joycon() {
 fn main() {
     let cli = Cli::parse();
 
-    let mut c = clicker::Clicker::new();
+    let mut c = match clicker::Clicker::new() {
+        Ok(c) => c,
+        Err(_) => {
+            eprintln!("Cannot create Clicker");
+            exit(1)
+        }
+    };
 
     #[cfg(feature = "sandbox")]
     if !cli.disable_sandbox {
