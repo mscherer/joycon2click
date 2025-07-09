@@ -1,25 +1,19 @@
 // SPDX-License-Identifier: MIT
 
-const VID_NINTENDO: u16 = 1406;
-const PID_JOYCON_LEFT: u16 = 8198;
-const PID_JOYCON_RIGHT: u16 = 8199;
-
 use std::process::exit;
+use std::thread;
 use std::time::Duration;
-use std::{process, thread};
 
 use evdev::KeyCode;
 
 #[cfg(feature = "sandbox")]
 use nix::sys::prctl::set_no_new_privs;
 
-use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
-
-use kobject_uevent::{ActionType, UEvent};
-
 use clap::Parser;
 
-pub mod clicker;
+mod clicker;
+
+pub mod joycon;
 pub mod user_parser;
 
 #[cfg(feature = "seccomp")]
@@ -41,13 +35,6 @@ compile_error!(
 
 // return 1 single joycon, since the code use `find`
 // multiple joycon support is out of scope for now
-fn get_joycon() -> Option<evdev::Device> {
-    evdev::enumerate().map(|(_, d)| d).find(|d| {
-        (d.input_id().product() == PID_JOYCON_RIGHT || d.input_id().product() == PID_JOYCON_LEFT)
-            && d.input_id().vendor() == VID_NINTENDO
-    })
-}
-
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
@@ -67,27 +54,6 @@ struct Cli {
     #[cfg(feature = "sandbox")]
     #[arg(long)]
     disable_sandbox: bool,
-}
-
-fn wait_for_joycon() {
-    let mut socket = Socket::new(NETLINK_KOBJECT_UEVENT).unwrap();
-    let sa = SocketAddr::new(process::id(), 1);
-    socket.bind(&sa).unwrap();
-
-    loop {
-        let (buf, _) = socket.recv_from_full().unwrap();
-        //        let s = std::str::from_utf8(&buf).unwrap();
-        let u = UEvent::from_netlink_packet(&buf).unwrap();
-        if u.action == ActionType::Bind && u.subsystem == "hid" {
-            match u.env.get("DRIVER") {
-                Some(a) if a == "nintendo" => {
-                    break;
-                }
-                Some(_) => {}
-                None => {}
-            }
-        }
-    }
 }
 
 fn main() {
@@ -133,12 +99,12 @@ fn main() {
     }
 
     'get_joycon: loop {
-        match get_joycon() {
+        match joycon::get_joycon() {
             None => {
                 if cli.debug {
                     println!("No joycon detected, entering loop");
                 }
-                wait_for_joycon();
+                joycon::wait_for_joycon();
                 // time needed to make sure that the device appear in
                 // /dev/input after wait_for_joycon return
                 // (not sure why, but 2 sec is enough)
