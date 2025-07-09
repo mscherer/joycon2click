@@ -2,16 +2,16 @@ use evdev::{
     uinput::{VirtualDevice, VirtualDeviceBuilder},
     {AttributeSet, KeyCode, KeyEvent},
 };
+use std::io;
 use std::io::ErrorKind;
 use std::os::fd::AsRawFd;
-use std::process::exit;
 
 pub struct Clicker {
     device: VirtualDevice,
 }
 
 impl Clicker {
-    pub fn new() -> Clicker {
+    pub fn new() -> io::Result<Clicker> {
         let mut keys = AttributeSet::<KeyCode>::new();
         keys.insert(KeyCode::KEY_LEFT);
         keys.insert(KeyCode::KEY_RIGHT);
@@ -19,14 +19,15 @@ impl Clicker {
         // TODO see what happen if uinput is not here
         #[allow(deprecated)]
         let device = match VirtualDeviceBuilder::new() {
+            // TODO could be improved
             Err(e) if e.kind() == ErrorKind::PermissionDenied => {
-                println!("Permission error on /dev/uinput.");
-                println!("Check the documentation for various workarounds.");
-                exit(1);
+                eprintln!("Permission error on /dev/uinput.");
+                eprintln!("Check the documentation for various workarounds.");
+                return Err(e);
             }
             Err(e) => {
-                println!("Error: {e:?}");
-                exit(1);
+                eprintln!("Error: {e:?}");
+                return Err(e);
             }
 
             Ok(d) => d
@@ -36,7 +37,7 @@ impl Clicker {
                 .build()
                 .unwrap(),
         };
-        Clicker { device }
+        Ok(Clicker { device })
     }
 
     fn press_key(&mut self, keycode: KeyCode) {
@@ -56,11 +57,5 @@ impl Clicker {
     #[allow(dead_code)]
     pub fn get_device_fd(&mut self) -> i32 {
         self.device.as_raw_fd()
-    }
-}
-
-impl Default for Clicker {
-    fn default() -> Self {
-        Self::new()
     }
 }
