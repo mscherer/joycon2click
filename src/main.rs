@@ -160,7 +160,9 @@ fn main() {
                                         }
                                         match k {
                                             KeyCode::BTN_DPAD_LEFT | KeyCode::BTN_WEST => {
-                                                c.press_left()
+                                                if c.press_left().is_err() {
+                                                    eprintln!("Cannot press left");
+                                                }
                                             }
                                             KeyCode::BTN_TR
                                             | KeyCode::BTN_TL
@@ -168,7 +170,9 @@ fn main() {
                                             | KeyCode::BTN_TL2
                                             | KeyCode::BTN_DPAD_RIGHT
                                             | KeyCode::BTN_EAST => {
-                                                c.press_right();
+                                                if c.press_right().is_err() {
+                                                    eprintln!("Cannot press right");
+                                                }
                                             }
                                             _ => {
                                                 println!("Key: {k:?}")
