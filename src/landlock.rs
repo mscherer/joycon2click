@@ -1,5 +1,5 @@
 use landlock::{
-    Access, AccessFs, AccessNet, RestrictionStatus, Ruleset, RulesetAttr, RulesetError, Scope, ABI,
+    ABI, Access, AccessFs, AccessNet, RestrictionStatus, Ruleset, RulesetAttr, RulesetError, Scope,
 };
 
 pub struct LandlockConfiner {}

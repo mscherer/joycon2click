@@ -1,5 +1,5 @@
 use kobject_uevent::{ActionType, UEvent};
-use netlink_sys::{protocols::NETLINK_KOBJECT_UEVENT, Socket, SocketAddr};
+use netlink_sys::{Socket, SocketAddr, protocols::NETLINK_KOBJECT_UEVENT};
 use std::process;
 
 const VID_NINTENDO: u16 = 1406;
