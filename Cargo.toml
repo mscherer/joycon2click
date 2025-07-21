@@ -1,9 +1,8 @@
 [package]
 name = "joycon2click"
 version = "0.3.0"
-edition = "2021"
+edition = "2024"
 authors= ["Michaël Scherer"]
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
 default = []

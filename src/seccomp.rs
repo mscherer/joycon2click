@@ -1,8 +1,8 @@
 use {
     nix::libc,
     seccompiler::{
-        apply_filter, BpfProgram, SeccompAction, SeccompCmpArgLen, SeccompCmpOp, SeccompCondition,
-        SeccompFilter, SeccompRule,
+        BpfProgram, SeccompAction, SeccompCmpArgLen, SeccompCmpOp, SeccompCondition, SeccompFilter,
+        SeccompRule, apply_filter,
     },
     std::env::consts::ARCH,
 };

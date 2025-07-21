@@ -1,6 +1,6 @@
 use clap::error::{ContextKind, ContextValue, ErrorKind};
-use nix::unistd::setuid;
 use nix::unistd::User;
+use nix::unistd::setuid;
 use std::fmt;
 
 #[derive(Clone, Debug)]
