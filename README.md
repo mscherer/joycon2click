@@ -41,6 +41,10 @@ Only 1 joycon is supported (usually, the 1st one attached, but no guarantee on t
 
 If the joycon is disconnected, nothing happen. If it reconnect, the software will stop, unless if `-b` is given on the command-line.
 
+## Unknown support for Switch 2
+
+Due to lack of hardware, I was not able to test with Switch 2 joycons.
+
 # Alternatives
 
 A few people have wrote software similar to that one, I list them here for reference:
