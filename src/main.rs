@@ -9,6 +9,8 @@ use evdev::KeyCode;
 #[cfg(feature = "sandbox")]
 use nix::sys::prctl::set_no_new_privs;
 
+use nix::unistd::getuid;
+
 use clap::Parser;
 
 mod clicker;
@@ -88,6 +90,11 @@ fn main() {
             println!("Can't confine: {e}");
             exit(1);
         }
+    }
+
+    // potential bug, not sure where it comes from
+    if getuid().is_root() {
+        println!("Running as root, which prevent getting keypress in some configuration");
     }
 
     if let Some(user) = cli.user {
