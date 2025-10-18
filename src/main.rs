@@ -92,17 +92,17 @@ fn main() {
         }
     }
 
-    // potential bug, not sure where it comes from
-    if getuid().is_root() {
-        println!("Running as root, which prevent getting keypress in some configuration");
-    }
-
     if let Some(user) = cli.user {
         user.setuid().expect("setuid");
 
         if cli.debug {
             println!("Changed uid to {user}");
         }
+    }
+
+    // potential bug, not sure where it comes from
+    if getuid().is_root() {
+        println!("Running as root, which prevent getting keypress in some configuration");
     }
 
     'get_joycon: loop {
