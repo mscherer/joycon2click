@@ -119,7 +119,7 @@ fn main() {
             }
 
             Some(mut j) => {
-                println!("Device found: {:?}", j.name());
+                println!("Device found: {:?}", j.name().unwrap_or("<no name found>"));
 
                 'fetch_events: loop {
                     // this return a error if the device no longer exist
