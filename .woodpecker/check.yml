@@ -1,0 +1,9 @@
+---
+when:
+  branch: main
+  event: push
+
+steps:
+  - name: check-rust-code
+    image: ghcr.io/mscherer/woodpecker_check_rust:latest
+    pull: true
